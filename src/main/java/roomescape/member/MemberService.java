@@ -43,7 +43,6 @@ public class MemberService {
                     .parseClaimsJws(token)
                     .getBody();
 
-            Long memberId = Long.valueOf(claims.getSubject());
             String name = claims.get("name", String.class);
             return memberDao.findByName(name);
         } catch (Exception e) {

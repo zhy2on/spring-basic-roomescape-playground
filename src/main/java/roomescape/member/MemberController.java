@@ -1,7 +1,6 @@
 package roomescape.member;
 
 import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,12 +21,12 @@ public class MemberController {
     @PostMapping("/members")
     public ResponseEntity createMember(@RequestBody MemberRequest memberRequest) {
         MemberResponse member = memberService.createMember(memberRequest);
-        return ResponseEntity.created(URI.create("/members/" + member.getId())).body(member);
+        return ResponseEntity.created(URI.create("/members/" + member.id())).body(member);
     }
 
     @PostMapping("/login")
     public ResponseEntity<Void> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
-        Member member = memberService.login(loginRequest.getEmail(), loginRequest.getPassword());
+        Member member = memberService.login(loginRequest.email(), loginRequest.password());
         if (member != null) {
             String token = memberService.createToken(member);
             Cookie cookie = new Cookie("token", token);
@@ -40,13 +39,9 @@ public class MemberController {
     }
 
     @GetMapping("/login/check")
-    public ResponseEntity<MemberResponse> checkLogin(HttpServletRequest request) {
-        String token = extractTokenFromCookie(request.getCookies());
-        if (token != null && !token.isEmpty()) {
-            Member member = memberService.findMemberByToken(token);
-            if (member != null) {
-                return ResponseEntity.ok(new MemberResponse(member.getId(), member.getName(), member.getEmail()));
-            }
+    public ResponseEntity<MemberResponse> checkLogin(LoginMember loginMember) {
+        if (loginMember != null) {
+            return ResponseEntity.ok(new MemberResponse(loginMember.id(), loginMember.name(), loginMember.email()));
         }
         return ResponseEntity.badRequest().build();
     }
@@ -59,16 +54,5 @@ public class MemberController {
         cookie.setMaxAge(0);
         response.addCookie(cookie);
         return ResponseEntity.ok().build();
-    }
-
-    private String extractTokenFromCookie(Cookie[] cookies) {
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if (cookie.getName().equals("token")) {
-                    return cookie.getValue();
-                }
-            }
-        }
-        return null;
     }
 }

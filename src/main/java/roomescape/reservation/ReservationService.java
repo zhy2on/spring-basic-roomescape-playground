@@ -12,10 +12,21 @@ public class ReservationService {
         this.reservationDao = reservationDao;
     }
 
-    public ReservationResponse save(ReservationRequest reservationRequest) {
-        Reservation reservation = reservationDao.save(reservationRequest);
+    public ReservationResponse save(ReservationRequest reservationRequest, String name) {
+        if (name == null) {
+            throw new IllegalArgumentException("Name is required for reservation");
+        }
 
-        return new ReservationResponse(reservation.getId(), reservationRequest.getName(), reservation.getTheme().getName(), reservation.getDate(), reservation.getTime().getValue());
+        ReservationRequest updatedRequest = new ReservationRequest(
+                name,
+                reservationRequest.date(),
+                reservationRequest.theme(),
+                reservationRequest.time()
+        );
+
+        Reservation reservation = reservationDao.save(updatedRequest);
+
+        return new ReservationResponse(reservation.getId(), name, reservation.getTheme().getName(), reservation.getDate(), reservation.getTime().getValue());
     }
 
     public void deleteById(Long id) {

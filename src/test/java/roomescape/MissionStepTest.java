@@ -7,11 +7,15 @@ import io.restassured.response.Response;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import roomescape.member.Member;
 import roomescape.member.MemberService;
 import roomescape.reservation.ReservationResponse;
+import roomescape.time.Time;
+import roomescape.time.TimeRepository;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -107,3 +111,4 @@ public class MissionStepTest {
         return memberService.createToken(member);
     }
 }
+

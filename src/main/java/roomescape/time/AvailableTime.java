@@ -1,6 +1,14 @@
 package roomescape.time;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+
+@Entity
 public class AvailableTime {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long timeId;
     private String time;
     private boolean booked;
@@ -9,6 +17,9 @@ public class AvailableTime {
         this.timeId = timeId;
         this.time = time;
         this.booked = booked;
+    }
+
+    public AvailableTime() {
     }
 
     public Long getTimeId() {

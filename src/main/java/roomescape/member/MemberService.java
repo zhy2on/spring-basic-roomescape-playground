@@ -5,25 +5,30 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class MemberService {
-    private MemberDao memberDao;
+    private final MemberRepository memberRepository;
 
     @Value("${roomescape.auth.jwt.secret}")
     private String secretKey;
 
-    public MemberService(MemberDao memberDao) {
-        this.memberDao = memberDao;
+    public MemberService(MemberRepository memberRepository) {
+        this.memberRepository = memberRepository;
     }
 
+    @Transactional
     public MemberResponse createMember(MemberRequest memberRequest) {
-        Member member = memberDao.save(new Member(memberRequest.name(), memberRequest.email(), memberRequest.password(), "USER"));
-        return new MemberResponse(member.getId(), member.getName(), member.getEmail());
+        Member member = new Member(memberRequest.name(), memberRequest.email(), memberRequest.password(), "USER");
+        Member savedMember = memberRepository.save(member);
+        return new MemberResponse(savedMember.getId(), savedMember.getName(), savedMember.getEmail());
     }
 
+    @Transactional(readOnly = true)
     public Member login(String email, String password) {
-        return memberDao.findByEmailAndPassword(email, password);
+        return memberRepository.findByEmailAndPassword(email, password)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
     }
 
     public String createToken(Member member) {
@@ -35,6 +40,7 @@ public class MemberService {
                 .compact();
     }
 
+    @Transactional(readOnly = true)
     public Member findMemberByToken(String token) {
         try {
             Claims claims = Jwts.parserBuilder()
@@ -44,7 +50,8 @@ public class MemberService {
                     .getBody();
 
             String name = claims.get("name", String.class);
-            return memberDao.findByName(name);
+            return memberRepository.findByName(name)
+                    .orElseThrow(() -> new IllegalArgumentException("Member not found"));
         } catch (Exception e) {
             return null;
         }

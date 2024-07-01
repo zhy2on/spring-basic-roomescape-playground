@@ -32,3 +32,11 @@ dependencies {
 test {
     useJUnitPlatform()
 }
+
+processResources.dependsOn('copySecret')
+
+tasks.register('copySecret', Copy) {
+    from './spring-basic-roomescape-playground-submodule'
+    include 'application*.properties', 'schema.sql'
+    into './src/main/resources'
+}

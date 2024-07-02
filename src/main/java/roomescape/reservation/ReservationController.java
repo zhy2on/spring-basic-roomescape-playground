@@ -1,5 +1,6 @@
 package roomescape.reservation;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,6 +27,15 @@ public class ReservationController {
         return reservationService.findAll();
     }
 
+    @GetMapping("/reservations-mine")
+    public ResponseEntity<List<MyReservationResponse>> listMyReservations(LoginMember loginMember) {
+        if (loginMember == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        List<MyReservationResponse> reservations = reservationService.findAllByMemberId(loginMember.id());
+        return ResponseEntity.ok(reservations);
+    }
+
     @PostMapping("/reservations")
     public ResponseEntity create(@RequestBody ReservationRequest reservationRequest, LoginMember loginMember) {
         if (reservationRequest.date() == null
@@ -34,12 +44,7 @@ public class ReservationController {
             return ResponseEntity.badRequest().build();
         }
 
-        String name = reservationRequest.name();
-        if (name == null && loginMember != null) {
-            name = loginMember.name();
-        }
-
-        ReservationResponse reservation = reservationService.save(reservationRequest, name);
+        ReservationResponse reservation = reservationService.save(reservationRequest, loginMember);
 
         return ResponseEntity.created(URI.create("/reservations/" + reservation.id())).body(reservation);
     }

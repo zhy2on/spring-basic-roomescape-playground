@@ -13,6 +13,6 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     List<Reservation> findByDateAndTheme_Id(String date, Long themeId);
 
-    @Query("SELECT r FROM Reservation r JOIN FETCH r.theme t JOIN FETCH r.time ti WHERE r.date = :date AND r.theme.id = :themeId")
-    List<Reservation> findByDateAndThemeIdWithThemeAndTime(@Param("date") String date, @Param("themeId") Long themeId);
+    @Query("SELECT r FROM Reservation r JOIN FETCH r.theme t JOIN FETCH r.time ti WHERE r.member.id = :memberId")
+    List<Reservation> findAllByMemberIdWithThemeAndTime(@Param("memberId") Long memberId);
 }

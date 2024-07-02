@@ -8,7 +8,10 @@ import roomescape.theme.Theme;
 import roomescape.theme.ThemeRepository;
 import roomescape.time.Time;
 import roomescape.time.TimeRepository;
+import roomescape.waiting.WaitingService;
+import roomescape.waiting.WaitingWithRank;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -17,15 +20,18 @@ public class ReservationService {
     private final ThemeRepository themeRepository;
     private final TimeRepository timeRepository;
     private final MemberRepository memberRepository;
+    private final WaitingService waitingService;
 
     public ReservationService(ReservationRepository reservationRepository,
                               ThemeRepository themeRepository,
                               TimeRepository timeRepository,
-                              MemberRepository memberRepository) {
+                              MemberRepository memberRepository,
+                              WaitingService waitingService) {
         this.reservationRepository = reservationRepository;
         this.themeRepository = themeRepository;
         this.timeRepository = timeRepository;
         this.memberRepository = memberRepository;
+        this.waitingService = waitingService;
     }
 
 
@@ -68,7 +74,9 @@ public class ReservationService {
     }
 
     public List<MyReservationResponse> findAllByMemberId(Long memberId) {
-        return reservationRepository.findAllByMemberIdWithThemeAndTime(memberId).stream()
+        List<MyReservationResponse> result = new ArrayList<>();
+
+        result.addAll(reservationRepository.findAllByMemberIdWithThemeAndTime(memberId).stream()
                 .map(it -> new MyReservationResponse(
                         it.getId(),
                         it.getTheme().getName(),
@@ -76,6 +84,19 @@ public class ReservationService {
                         it.getTime().getValue(),
                         "예약"
                 ))
-                .toList();
+                .toList());
+
+        List<WaitingWithRank> waitings = waitingService.findWaitingsWithRankByMemberId(memberId);
+        result.addAll(waitings.stream()
+                .map(it -> new MyReservationResponse(
+                        it.getWaiting().getId(),
+                        it.getWaiting().getTheme().getName(),
+                        it.getWaiting().getDate(),
+                        it.getWaiting().getTime().getValue(),
+                        (it.getRank() + 1) + "번째 예약대기"
+                ))
+                .toList());
+
+        return result;
     }
 }

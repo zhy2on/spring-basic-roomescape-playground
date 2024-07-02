@@ -15,4 +15,6 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     @Query("SELECT r FROM Reservation r JOIN FETCH r.theme t JOIN FETCH r.time ti WHERE r.member.id = :memberId")
     List<Reservation> findAllByMemberIdWithThemeAndTime(@Param("memberId") Long memberId);
+
+    boolean existsByDateAndThemeIdAndTimeId(String date, Long themeId, Long timeId);
 }

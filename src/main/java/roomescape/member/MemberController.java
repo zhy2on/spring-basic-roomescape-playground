@@ -7,14 +7,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import roomescape.auth.JwtUtils;
 
 import java.net.URI;
 
 @RestController
 public class MemberController {
+    private final JwtUtils jwtUtils;
     private final MemberService memberService;
 
-    public MemberController(MemberService memberService) {
+    public MemberController(JwtUtils jwtUtils, MemberService memberService) {
+        this.jwtUtils = jwtUtils;
         this.memberService = memberService;
     }
 
@@ -28,7 +31,7 @@ public class MemberController {
     public ResponseEntity<Void> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
         Member member = memberService.login(loginRequest.email(), loginRequest.password());
         if (member != null) {
-            String token = memberService.createToken(member);
+            String token = jwtUtils.createToken(member);
             Cookie cookie = new Cookie("token", token);
             cookie.setHttpOnly(true);
             cookie.setPath("/");

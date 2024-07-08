@@ -1,4 +1,4 @@
-package roomescape.member;
+package roomescape.config;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.MethodParameter;
@@ -6,13 +6,16 @@ import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
+import roomescape.auth.JwtUtils;
+import roomescape.member.LoginMember;
 import roomescape.util.CookieUtil;
+import io.jsonwebtoken.Claims;
 
 public class LoginMemberArgumentResolver implements HandlerMethodArgumentResolver {
-    private final MemberService memberService;
+    private final JwtUtils jwtUtils;
 
-    public LoginMemberArgumentResolver(MemberService memberService) {
-        this.memberService = memberService;
+    public LoginMemberArgumentResolver(JwtUtils jwtUtils) {
+        this.jwtUtils = jwtUtils;
     }
 
     @Override
@@ -25,9 +28,15 @@ public class LoginMemberArgumentResolver implements HandlerMethodArgumentResolve
         HttpServletRequest request = (HttpServletRequest) webRequest.getNativeRequest();
         String token = CookieUtil.extractTokenFromCookie(request.getCookies());
         if (token != null && !token.isEmpty()) {
-            Member member = memberService.findMemberByToken(token);
-            if (member != null) {
-                return new LoginMember(member.getId(), member.getName(), member.getEmail(), member.getRole());
+            try {
+                Claims claims = jwtUtils.parseToken(token);
+                Long id = Long.parseLong(claims.getSubject());
+                String name = claims.get("name", String.class);
+                String email = claims.get("email", String.class);
+                String role = claims.get("role", String.class);
+                return new LoginMember(id, name, email, role);
+            } catch (Exception e) {
+                return null;
             }
         }
         return null;

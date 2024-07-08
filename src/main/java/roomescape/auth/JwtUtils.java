@@ -31,4 +31,17 @@ public class JwtUtils {
                 .parseClaimsJws(token)
                 .getBody();
     }
+
+    public String getRoleFromToken(String token) {
+        Claims claims = parseToken(token);
+        return claims.get("role", String.class);
+    }
+
+    public Member getMemberFromToken(String token) {
+        Claims claims = parseToken(token);
+        Long id = Long.parseLong(claims.getSubject());
+        String name = claims.get("name", String.class);
+        String role = claims.get("role", String.class);
+        return new Member(id, name, role);
+    }
 }

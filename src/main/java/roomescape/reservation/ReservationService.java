@@ -63,13 +63,7 @@ public class ReservationService {
 
     public List<ReservationResponse> findAll() {
         return reservationRepository.findAllWithThemeAndTime().stream()
-                .map(it -> new ReservationResponse(
-                        it.getId(),
-                        it.getName(),
-                        it.getTheme().getName(),
-                        it.getDate(),
-                        it.getTime().getValue()
-                ))
+                .map(ReservationResponse::of)
                 .toList();
     }
 
@@ -77,24 +71,12 @@ public class ReservationService {
         List<MyReservationResponse> result = new ArrayList<>();
 
         result.addAll(reservationRepository.findAllByMemberIdWithThemeAndTime(memberId).stream()
-                .map(it -> new MyReservationResponse(
-                        it.getId(),
-                        it.getTheme().getName(),
-                        it.getDate(),
-                        it.getTime().getValue(),
-                        "예약"
-                ))
+                .map(MyReservationResponse::ofReservation)
                 .toList());
 
         List<WaitingWithRank> waitings = waitingService.findWaitingsWithRankByMemberId(memberId);
         result.addAll(waitings.stream()
-                .map(it -> new MyReservationResponse(
-                        it.getWaiting().getId(),
-                        it.getWaiting().getTheme().getName(),
-                        it.getWaiting().getDate(),
-                        it.getWaiting().getTime().getValue(),
-                        (it.getRank() + 1) + "번째 예약대기"
-                ))
+                .map(MyReservationResponse::ofWaiting)
                 .toList());
 
         return result;

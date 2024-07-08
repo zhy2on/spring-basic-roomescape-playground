@@ -1,6 +1,9 @@
 package roomescape.reservation;
 
 import org.springframework.stereotype.Service;
+import roomescape.exception.MemberNotFoundException;
+import roomescape.exception.ThemeNotFoundException;
+import roomescape.exception.TimeNotFoundException;
 import roomescape.member.LoginMember;
 import roomescape.member.Member;
 import roomescape.member.MemberRepository;
@@ -37,16 +40,16 @@ public class ReservationService {
 
     public ReservationResponse save(ReservationRequest reservationRequest, LoginMember loginMember) {
         Theme theme = themeRepository.findById(reservationRequest.theme())
-                .orElseThrow(() -> new RuntimeException("Theme not found"));
+                .orElseThrow(() -> new ThemeNotFoundException("Theme not found: " + reservationRequest.theme()));
         Time time = timeRepository.findById(reservationRequest.time())
-                .orElseThrow(() -> new RuntimeException("Time not found"));
+                .orElseThrow(() -> new TimeNotFoundException("Time not found: " + reservationRequest.time()));
 
         Member member = null;
         String name = reservationRequest.name();
 
         if (loginMember != null) {
             member = memberRepository.findByName(loginMember.name())
-                    .orElseThrow(() -> new RuntimeException("Member not found"));
+                    .orElseThrow(() -> new MemberNotFoundException("Member not found: " + loginMember.name()));
             name = member.getName();
         }
 

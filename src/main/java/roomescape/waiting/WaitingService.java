@@ -2,6 +2,9 @@ package roomescape.waiting;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import roomescape.exception.MemberNotFoundException;
+import roomescape.exception.ThemeNotFoundException;
+import roomescape.exception.TimeNotFoundException;
 import roomescape.member.Member;
 import roomescape.member.MemberRepository;
 import roomescape.reservation.ReservationRepository;
@@ -32,11 +35,11 @@ public class WaitingService {
     @Transactional
     public WaitingResponse createWaiting(WaitingRequest waitingRequest, Long memberId) {
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new RuntimeException("Member not found"));
+                .orElseThrow(() -> new MemberNotFoundException("Member not found"));
         Theme theme = themeRepository.findById(waitingRequest.theme())
-                .orElseThrow(() -> new RuntimeException("Theme not found"));
+                .orElseThrow(() -> new ThemeNotFoundException("Theme not found: " + waitingRequest.theme()));
         Time time = timeRepository.findById(waitingRequest.time())
-                .orElseThrow(() -> new RuntimeException("Time not found"));
+                .orElseThrow(() -> new TimeNotFoundException("Time not found: " + waitingRequest.time()));
 
         if (!isSlotReserved(waitingRequest.date(), theme.getId(), time.getId())) {
             throw new IllegalStateException("해당 시간대에 예약이 없어 예약 대기를 할 수 없습니다.");

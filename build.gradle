@@ -37,6 +37,6 @@ processResources.dependsOn('copySecret')
 
 tasks.register('copySecret', Copy) {
     from './spring-basic-roomescape-playground-submodule'
-    include 'application*.properties', 'schema.sql'
+    include 'application*.properties'
     into './src/main/resources'
 }

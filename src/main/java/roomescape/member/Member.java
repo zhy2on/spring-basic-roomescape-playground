@@ -29,6 +29,12 @@ public class Member {
         this.role = role;
     }
 
+    public Member(Long id, String name, String role) {
+        this.id = id;
+        this.name = name;
+        this.role = role;
+    }
+
     public Member() {
     }
 

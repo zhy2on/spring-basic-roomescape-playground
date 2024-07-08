@@ -9,7 +9,7 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 import roomescape.util.CookieUtil;
 
 public class LoginMemberArgumentResolver implements HandlerMethodArgumentResolver {
-    private MemberService memberService;
+    private final MemberService memberService;
 
     public LoginMemberArgumentResolver(MemberService memberService) {
         this.memberService = memberService;
@@ -21,7 +21,7 @@ public class LoginMemberArgumentResolver implements HandlerMethodArgumentResolve
     }
 
     @Override
-    public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
+    public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
         HttpServletRequest request = (HttpServletRequest) webRequest.getNativeRequest();
         String token = CookieUtil.extractTokenFromCookie(request.getCookies());
         if (token != null && !token.isEmpty()) {

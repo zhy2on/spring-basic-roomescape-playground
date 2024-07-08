@@ -14,8 +14,9 @@ import roomescape.time.TimeRepository;
 import roomescape.waiting.WaitingService;
 import roomescape.waiting.WaitingWithRank;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 @Service
 public class ReservationService {
@@ -44,20 +45,21 @@ public class ReservationService {
         Time time = timeRepository.findById(reservationRequest.time())
                 .orElseThrow(() -> new TimeNotFoundException("Time not found: " + reservationRequest.time()));
 
-        Member member = null;
-        String name = reservationRequest.name();
+        Member member = Optional.ofNullable(loginMember)
+                .map(lm -> memberRepository.findByName(lm.name())
+                        .orElseThrow(() -> new MemberNotFoundException("Member not found: " + lm.name())))
+                .orElse(null);
 
-        if (loginMember != null) {
-            member = memberRepository.findByName(loginMember.name())
-                    .orElseThrow(() -> new MemberNotFoundException("Member not found: " + loginMember.name()));
-            name = member.getName();
-        }
+        String name = Optional.ofNullable(reservationRequest.name())
+                .filter(n -> !n.isEmpty())
+                .orElseGet(() -> Optional.ofNullable(member)
+                        .map(Member::getName)
+                        .orElse(null));
 
         Reservation reservation = new Reservation(name, reservationRequest.date(), time, theme, member);
         Reservation savedReservation = reservationRepository.save(reservation);
 
-        return new ReservationResponse(savedReservation.getId(), name, theme.getName(),
-                reservationRequest.date(), time.getValue());
+        return ReservationResponse.of(savedReservation);
     }
 
     public void deleteById(Long id) {
@@ -71,17 +73,16 @@ public class ReservationService {
     }
 
     public List<MyReservationResponse> findAllByMemberId(Long memberId) {
-        List<MyReservationResponse> result = new ArrayList<>();
-
-        result.addAll(reservationRepository.findAllByMemberIdWithThemeAndTime(memberId).stream()
+        List<MyReservationResponse> reservations = reservationRepository.findAllByMemberIdWithThemeAndTime(memberId).stream()
                 .map(MyReservationResponse::ofReservation)
-                .toList());
+                .toList();
 
         List<WaitingWithRank> waitings = waitingService.findWaitingsWithRankByMemberId(memberId);
-        result.addAll(waitings.stream()
+        List<MyReservationResponse> waitingResponses = waitings.stream()
                 .map(MyReservationResponse::ofWaiting)
-                .toList());
+                .toList();
 
-        return result;
+        return Stream.concat(reservations.stream(), waitingResponses.stream())
+                .toList();
     }
 }

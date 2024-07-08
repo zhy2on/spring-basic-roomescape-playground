@@ -21,11 +21,11 @@ public record MyReservationResponse(
 
     public static MyReservationResponse ofWaiting(WaitingWithRank waiting) {
         return new MyReservationResponse(
-                waiting.getWaiting().getId(),
-                waiting.getWaiting().getTheme().getName(),
-                waiting.getWaiting().getDate(),
-                waiting.getWaiting().getTime().getValue(),
-                (waiting.getRank() + 1) + "번째 예약대기"
+                waiting.waiting().getId(),
+                waiting.waiting().getTheme().getName(),
+                waiting.waiting().getDate(),
+                waiting.waiting().getTime().getValue(),
+                (waiting.rank() + 1) + "번째 예약대기"
         );
     }
 }

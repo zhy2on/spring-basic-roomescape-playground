@@ -19,7 +19,7 @@ public class MemberController {
     }
 
     @PostMapping("/members")
-    public ResponseEntity createMember(@RequestBody MemberRequest memberRequest) {
+    public ResponseEntity<MemberResponse> createMember(@RequestBody MemberRequest memberRequest) {
         MemberResponse member = memberService.createMember(memberRequest);
         return ResponseEntity.created(URI.create("/members/" + member.id())).body(member);
     }
@@ -47,7 +47,7 @@ public class MemberController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity logout(HttpServletResponse response) {
+    public ResponseEntity<Void> logout(HttpServletResponse response) {
         Cookie cookie = new Cookie("token", "");
         cookie.setHttpOnly(true);
         cookie.setPath("/");

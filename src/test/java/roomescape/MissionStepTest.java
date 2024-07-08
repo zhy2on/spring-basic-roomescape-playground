@@ -26,7 +26,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 public class MissionStepTest {
     @Autowired
+    private JwtUtils jwtUtils;
+    @Autowired
     private MemberService memberService;
+
 
     @Test
     void 일단계() {
@@ -165,7 +168,7 @@ public class MissionStepTest {
         if (member == null) {
             throw new IllegalArgumentException("Invalid email or password");
         }
-        return memberService.createToken(member);
+        return jwtUtils.createToken(member);
     }
 }
 

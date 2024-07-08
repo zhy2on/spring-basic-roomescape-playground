@@ -3,18 +3,17 @@ package roomescape.config;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.servlet.HandlerInterceptor;
+import roomescape.auth.JwtUtils;
 import roomescape.exception.ForbiddenException;
 import roomescape.exception.UnauthorizedException;
-import roomescape.member.Member;
-import roomescape.member.MemberService;
 import roomescape.util.CookieUtil;
 
 public class AdminInterceptor implements HandlerInterceptor {
 
-    private final MemberService memberService;
+    private final JwtUtils jwtUtils;
 
-    public AdminInterceptor(MemberService memberService) {
-        this.memberService = memberService;
+    public AdminInterceptor(JwtUtils jwtUtils) {
+        this.jwtUtils = jwtUtils;
     }
 
     @Override
@@ -26,13 +25,13 @@ public class AdminInterceptor implements HandlerInterceptor {
                 throw new UnauthorizedException("No token found in the request");
             }
 
-            Member member = memberService.findMemberByToken(token);
+            String role = jwtUtils.getRoleFromToken(token);
 
-            if (member == null) {
+            if (role == null) {
                 throw new UnauthorizedException("Invalid token");
             }
 
-            if (!"ADMIN".equals(member.getRole())) {
+            if (!"ADMIN".equals(role)) {
                 throw new ForbiddenException("User does not have admin privileges");
             }
 

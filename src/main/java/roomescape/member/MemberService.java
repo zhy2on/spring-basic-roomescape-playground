@@ -1,21 +1,18 @@
 package roomescape.member;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import roomescape.auth.JwtUtils;
 
 @Service
 public class MemberService {
     private final MemberRepository memberRepository;
+    private final JwtUtils jwtUtils;
 
-    @Value("${roomescape.auth.jwt.secret}")
-    private String secretKey;
-
-    public MemberService(MemberRepository memberRepository) {
+    public MemberService(MemberRepository memberRepository, JwtUtils jwtUtils) {
         this.memberRepository = memberRepository;
+        this.jwtUtils = jwtUtils;
     }
 
     @Transactional
@@ -32,26 +29,18 @@ public class MemberService {
     }
 
     public String createToken(Member member) {
-        return Jwts.builder()
-                .setSubject(member.getId().toString())
-                .claim("name", member.getName())
-                .claim("role", member.getRole())
-                .signWith(Keys.hmacShaKeyFor(secretKey.getBytes()))
-                .compact();
+        return jwtUtils.createToken(member);
     }
 
     @Transactional(readOnly = true)
     public Member findMemberByToken(String token) {
         try {
-            Claims claims = Jwts.parserBuilder()
-                    .setSigningKey(Keys.hmacShaKeyFor(secretKey.getBytes()))
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
-
+            Claims claims = jwtUtils.parseToken(token);
+            Long id = Long.parseLong(claims.getSubject());
             String name = claims.get("name", String.class);
-            return memberRepository.findByName(name)
-                    .orElseThrow(() -> new IllegalArgumentException("Member not found"));
+            String role = claims.get("role", String.class);
+
+            return new Member(id, name, role);
         } catch (Exception e) {
             return null;
         }
